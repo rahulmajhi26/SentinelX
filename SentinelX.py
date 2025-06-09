@@ -1,346 +1,233 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "id": "7601acad-646c-4de2-8d0f-a747900df8e6",
-   "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "\n",
-      "🛡️  BlackTrace - Cyber Threat Intel Recon Engine\n",
-      "1. Analyze IOC\n",
-      "2. Track Threat Actor\n",
-      "3. Scan Dark Web\n",
-      "4. Check Real-time Alerts\n",
-      "5. Generate Threat Report\n",
-      "6. Exit\n"
-     ]
-    },
-    {
-     "name": "stdin",
-     "output_type": "stream",
-     "text": [
-      "\n",
-      "Enter your choice (1-6):  4\n"
-     ]
-    },
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "\n",
-      "🔔 Checking for real-time alerts (simulated feed)...\n",
-      "✅ No current alerts detected.\n",
-      "\n",
-      "🛡️  BlackTrace - Cyber Threat Intel Recon Engine\n",
-      "1. Analyze IOC\n",
-      "2. Track Threat Actor\n",
-      "3. Scan Dark Web\n",
-      "4. Check Real-time Alerts\n",
-      "5. Generate Threat Report\n",
-      "6. Exit\n"
-     ]
-    },
-    {
-     "name": "stdin",
-     "output_type": "stream",
-     "text": [
-      "\n",
-      "Enter your choice (1-6):  1\n",
-      "Enter IOC (IP, Domain, Hash):  209.170.74.10\n"
-     ]
-    },
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "\n",
-      "🔍 Analyzing IOC: 209.170.74.10\n",
-      "✅ IOC found in VirusTotal with the following stats:\n",
-      "  Malicious: 0\n",
-      "  Suspicious: 0\n",
-      "  Undetected: 94\n",
-      "  Harmless: 0\n",
-      "  Timeout: 0\n",
-      "\n",
-      "🛡️  BlackTrace - Cyber Threat Intel Recon Engine\n",
-      "1. Analyze IOC\n",
-      "2. Track Threat Actor\n",
-      "3. Scan Dark Web\n",
-      "4. Check Real-time Alerts\n",
-      "5. Generate Threat Report\n",
-      "6. Exit\n"
-     ]
+import requests
+import re
+import os
+import datetime
+
+# =======================
+# Configuration Section
+# =======================
+
+VT_API_KEY = "14bc97ae3aafcb64252612865b55d809016d21feda056a5c167790eda4e258c8"
+
+ALERT_KEYWORDS = [
+    "APT28", "malware", "ransomware", "suspicious", "leak", "exploit", "phishing"
+]
+
+DARKWEB_DATA_DIR = "data/darkweb_samples"
+FEEDS_DATA_DIR = "data/feeds"
+OUTPUT_DIR = "output"
+
+# Ensure necessary directories exist
+for directory in [DARKWEB_DATA_DIR, FEEDS_DATA_DIR, OUTPUT_DIR]:
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+# =======================
+# IOC Analyzer Module
+# =======================
+
+def analyze_ioc(ioc):
+    print(f"\n🔍 Analyzing IOC: {ioc}")
+
+    url = f"https://www.virustotal.com/api/v3/search?query={ioc}"
+    headers = {
+        "x-apikey": VT_API_KEY
     }
-   ],
-   "source": [
-    "import requests\n",
-    "import re\n",
-    "import os\n",
-    "import datetime\n",
-    "\n",
-    "# =======================\n",
-    "# Configuration Section\n",
-    "# =======================\n",
-    "\n",
-    "VT_API_KEY = \"14bc97ae3aafcb64252612865b55d809016d21feda056a5c167790eda4e258c8\"\n",
-    "\n",
-    "ALERT_KEYWORDS = [\n",
-    "    \"APT28\", \"malware\", \"ransomware\", \"suspicious\", \"leak\", \"exploit\", \"phishing\"\n",
-    "]\n",
-    "\n",
-    "DARKWEB_DATA_DIR = \"data/darkweb_samples\"\n",
-    "FEEDS_DATA_DIR = \"data/feeds\"\n",
-    "OUTPUT_DIR = \"output\"\n",
-    "\n",
-    "# Ensure necessary directories exist\n",
-    "for directory in [DARKWEB_DATA_DIR, FEEDS_DATA_DIR, OUTPUT_DIR]:\n",
-    "    if not os.path.exists(directory):\n",
-    "        os.makedirs(directory)\n",
-    "\n",
-    "# =======================\n",
-    "# IOC Analyzer Module\n",
-    "# =======================\n",
-    "\n",
-    "def analyze_ioc(ioc):\n",
-    "    print(f\"\\n🔍 Analyzing IOC: {ioc}\")\n",
-    "\n",
-    "    url = f\"https://www.virustotal.com/api/v3/search?query={ioc}\"\n",
-    "    headers = {\n",
-    "        \"x-apikey\": VT_API_KEY\n",
-    "    }\n",
-    "\n",
-    "    try:\n",
-    "        response = requests.get(url, headers=headers)\n",
-    "        if response.status_code == 200:\n",
-    "            data = response.json()\n",
-    "            if \"data\" in data and len(data[\"data\"]) > 0:\n",
-    "                stats = data[\"data\"][0][\"attributes\"].get(\"last_analysis_stats\")\n",
-    "                if stats:\n",
-    "                    print(\"✅ IOC found in VirusTotal with the following stats:\")\n",
-    "                    for key, value in stats.items():\n",
-    "                        print(f\"  {key.capitalize()}: {value}\")\n",
-    "                else:\n",
-    "                    print(\"ℹ️ IOC found but no analysis stats available.\")\n",
-    "            else:\n",
-    "                print(\"ℹ️ No data found for this IOC in VirusTotal.\")\n",
-    "        else:\n",
-    "            print(f\"❌ Error fetching data from VirusTotal. Status code: {response.status_code}\")\n",
-    "            print(f\"Response: {response.text}\")\n",
-    "    except Exception as e:\n",
-    "        print(f\"❌ Exception during VirusTotal query: {e}\")\n",
-    "\n",
-    "# =======================\n",
-    "# Dark Web Scanner Module\n",
-    "# =======================\n",
-    "\n",
-    "def scan_darkweb(keyword):\n",
-    "    print(f\"\\n🌐 Scanning simulated Dark Web data for: '{keyword}'...\")\n",
-    "\n",
-    "    found = False\n",
-    "    for file in os.listdir(DARKWEB_DATA_DIR):\n",
-    "        if file.endswith(\".txt\"):\n",
-    "            filepath = os.path.join(DARKWEB_DATA_DIR, file)\n",
-    "            with open(filepath, \"r\", encoding=\"utf-8\") as f:\n",
-    "                content = f.read()\n",
-    "                if re.search(keyword, content, re.IGNORECASE):\n",
-    "                    print(f\"✅ Found keyword '{keyword}' in file: {file}\")\n",
-    "                    found = True\n",
-    "\n",
-    "    if not found:\n",
-    "        print(\"🚫 No matches found in dark web data.\")\n",
-    "\n",
-    "# =======================\n",
-    "# Threat Actor Tracker Module\n",
-    "# =======================\n",
-    "\n",
-    "def track_actor(keyword):\n",
-    "    print(f\"\\n🕵️ Tracking Threat Actor/TTP for: '{keyword}'\\n\")\n",
-    "\n",
-    "    actor_db = {\n",
-    "        \"APT28\": {\n",
-    "            \"aliases\": [\"Fancy Bear\", \"Sofacy\"],\n",
-    "            \"tactics\": [\"Credential Access\", \"Defense Evasion\"],\n",
-    "            \"country\": \"Russia\"\n",
-    "        },\n",
-    "        \"APT29\": {\n",
-    "            \"aliases\": [\"Cozy Bear\", \"The Dukes\"],\n",
-    "            \"tactics\": [\"Reconnaissance\", \"Spear Phishing\"],\n",
-    "            \"country\": \"Russia\"\n",
-    "        },\n",
-    "        \"Lazarus Group\": {\n",
-    "            \"aliases\": [\"Hidden Cobra\"],\n",
-    "            \"tactics\": [\"Financial Theft\", \"Malware Deployment\"],\n",
-    "            \"country\": \"North Korea\"\n",
-    "        },\n",
-    "        \"FIN7\": {\n",
-    "            \"aliases\": [\"Carbanak Group\"],\n",
-    "            \"tactics\": [\"Data Exfiltration\", \"Malware\", \"Backdoors\"],\n",
-    "            \"country\": \"Unknown\"\n",
-    "        },\n",
-    "        \"TA505\": {\n",
-    "            \"aliases\": [\"SectorJ04\"],\n",
-    "            \"tactics\": [\"Banking Malware\", \"Phishing Campaigns\"],\n",
-    "            \"country\": \"Global\"\n",
-    "        }\n",
-    "    }\n",
-    "\n",
-    "    found = False\n",
-    "    for actor, info in actor_db.items():\n",
-    "        if keyword.lower() in actor.lower() or any(keyword.lower() in alias.lower() for alias in info[\"aliases\"]):\n",
-    "            print(f\"🎯 Match Found: {actor}\")\n",
-    "            print(f\" - Aliases: {', '.join(info['aliases'])}\")\n",
-    "            print(f\" - Tactics: {', '.join(info['tactics'])}\")\n",
-    "            print(f\" - Suspected Origin: {info['country']}\")\n",
-    "            found = True\n",
-    "            break\n",
-    "\n",
-    "    if not found:\n",
-    "        print(\"🚫 No matching threat actor found in local database.\")\n",
-    "\n",
-    "# =======================\n",
-    "# Alert System Module\n",
-    "# =======================\n",
-    "\n",
-    "def check_alerts():\n",
-    "    print(\"\\n🔔 Checking for real-time alerts (simulated feed)...\")\n",
-    "\n",
-    "    triggered = False\n",
-    "\n",
-    "    for filename in os.listdir(FEEDS_DATA_DIR):\n",
-    "        if filename.endswith(\".log\"):\n",
-    "            filepath = os.path.join(FEEDS_DATA_DIR, filename)\n",
-    "            with open(filepath, \"r\", encoding=\"utf-8\") as f:\n",
-    "                lines = f.readlines()\n",
-    "                for line in lines:\n",
-    "                    for keyword in ALERT_KEYWORDS:\n",
-    "                        if re.search(keyword, line, re.IGNORECASE):\n",
-    "                            print(f\"🚨 ALERT [{keyword.upper()}] found in {filename}:\")\n",
-    "                            print(f\"  → {line.strip()}\\n\")\n",
-    "                            triggered = True\n",
-    "\n",
-    "    if not triggered:\n",
-    "        print(\"✅ No current alerts detected.\")\n",
-    "\n",
-    "# =======================\n",
-    "# Report Generator Module\n",
-    "# =======================\n",
-    "\n",
-    "def generate_report():\n",
-    "    print(\"\\n📝 Generating Threat Intelligence Report...\")\n",
-    "\n",
-    "    # You can replace this dummy data with actual data collected in runtime\n",
-    "    report_data = {\n",
-    "        \"ioc_detected\": [\"198.50.100.12\", \"malicious.com\", \"e3b0c44298fc1c149\"],\n",
-    "        \"actors\": [\"APT28\", \"Lazarus Group\"],\n",
-    "        \"alerts\": [\"Ransomware attack via phishing\", \"Data leak detected\"]\n",
-    "    }\n",
-    "\n",
-    "    timestamp = datetime.datetime.now().strftime(\"%Y-%m-%d_%H-%M-%S\")\n",
-    "    report_name = f\"BlackTrace_Report_{timestamp}.html\"\n",
-    "    output_path = os.path.join(OUTPUT_DIR, report_name)\n",
-    "\n",
-    "    with open(output_path, \"w\", encoding=\"utf-8\") as f:\n",
-    "        f.write(f\"<html><head><title>BlackTrace Report - {timestamp}</title></head><body>\")\n",
-    "        f.write(\"<h1 style='color:#2E86C1;'>🛡️ BlackTrace - Threat Intelligence Report</h1>\")\n",
-    "        f.write(f\"<p><b>Generated on:</b> {timestamp}</p><hr>\")\n",
-    "\n",
-    "        f.write(\"<h2>🚨 Detected IOCs:</h2><ul>\")\n",
-    "        for ioc in report_data[\"ioc_detected\"]:\n",
-    "            f.write(f\"<li>{ioc}</li>\")\n",
-    "        f.write(\"</ul>\")\n",
-    "\n",
-    "        f.write(\"<h2>🎯 Suspected Threat Actors:</h2><ul>\")\n",
-    "        for actor in report_data[\"actors\"]:\n",
-    "            f.write(f\"<li>{actor}</li>\")\n",
-    "        f.write(\"</ul>\")\n",
-    "\n",
-    "        f.write(\"<h2>🔔 Alerts:</h2><ul>\")\n",
-    "        for alert in report_data[\"alerts\"]:\n",
-    "            f.write(f\"<li>{alert}</li>\")\n",
-    "        f.write(\"</ul>\")\n",
-    "\n",
-    "        f.write(\"</body></html>\")\n",
-    "\n",
-    "    print(f\"✅ Report saved as: {output_path}\")\n",
-    "\n",
-    "# =======================\n",
-    "# Main Menu\n",
-    "# =======================\n",
-    "\n",
-    "def main():\n",
-    "    while True:\n",
-    "        print(\"\\n🛡️  BlackTrace - Cyber Threat Intel Recon Engine\")\n",
-    "        print(\"1. Analyze IOC\")\n",
-    "        print(\"2. Track Threat Actor\")\n",
-    "        print(\"3. Scan Dark Web\")\n",
-    "        print(\"4. Check Real-time Alerts\")\n",
-    "        print(\"5. Generate Threat Report\")\n",
-    "        print(\"6. Exit\")\n",
-    "\n",
-    "        choice = input(\"\\nEnter your choice (1-6): \").strip()\n",
-    "\n",
-    "        if choice == \"1\":\n",
-    "            ioc = input(\"Enter IOC (IP, Domain, Hash): \").strip()\n",
-    "            analyze_ioc(ioc)\n",
-    "\n",
-    "        elif choice == \"2\":\n",
-    "            keyword = input(\"Enter actor keyword or TTP: \").strip()\n",
-    "            track_actor(keyword)\n",
-    "\n",
-    "        elif choice == \"3\":\n",
-    "            query = input(\"Enter keyword to scan dark web: \").strip()\n",
-    "            scan_darkweb(query)\n",
-    "\n",
-    "        elif choice == \"4\":\n",
-    "            check_alerts()\n",
-    "\n",
-    "        elif choice == \"5\":\n",
-    "            generate_report()\n",
-    "\n",
-    "        elif choice == \"6\":\n",
-    "            print(\"👋 Exiting BlackTrace. Stay safe!\")\n",
-    "            break\n",
-    "\n",
-    "        else:\n",
-    "            print(\"❌ Invalid choice. Please enter a number from 1 to 6.\")\n",
-    "\n",
-    "if __name__ == \"__main__\":\n",
-    "    main()\n"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "id": "6fa8ef7e-63dc-41f7-8245-afddcb9d85df",
-   "metadata": {},
-   "outputs": [],
-   "source": []
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "Python 3 (ipykernel)",
-   "language": "python",
-   "name": "python3"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.12.4"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 5
-}
+
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            if "data" in data and len(data["data"]) > 0:
+                stats = data["data"][0]["attributes"].get("last_analysis_stats")
+                if stats:
+                    print("✅ IOC found in VirusTotal with the following stats:")
+                    for key, value in stats.items():
+                        print(f"  {key.capitalize()}: {value}")
+                else:
+                    print("ℹ️ IOC found but no analysis stats available.")
+            else:
+                print("ℹ️ No data found for this IOC in VirusTotal.")
+        else:
+            print(f"❌ Error fetching data from VirusTotal. Status code: {response.status_code}")
+            print(f"Response: {response.text}")
+    except Exception as e:
+        print(f"❌ Exception during VirusTotal query: {e}")
+
+# =======================
+# Dark Web Scanner Module
+# =======================
+
+def scan_darkweb(keyword):
+    print(f"\n🌐 Scanning simulated Dark Web data for: '{keyword}'...")
+
+    found = False
+    for file in os.listdir(DARKWEB_DATA_DIR):
+        if file.endswith(".txt"):
+            filepath = os.path.join(DARKWEB_DATA_DIR, file)
+            with open(filepath, "r", encoding="utf-8") as f:
+                content = f.read()
+                if re.search(keyword, content, re.IGNORECASE):
+                    print(f"✅ Found keyword '{keyword}' in file: {file}")
+                    found = True
+
+    if not found:
+        print("🚫 No matches found in dark web data.")
+
+# =======================
+# Threat Actor Tracker Module
+# =======================
+
+def track_actor(keyword):
+    print(f"\n🕵️ Tracking Threat Actor/TTP for: '{keyword}'\n")
+
+    actor_db = {
+        "APT28": {
+            "aliases": ["Fancy Bear", "Sofacy"],
+            "tactics": ["Credential Access", "Defense Evasion"],
+            "country": "Russia"
+        },
+        "APT29": {
+            "aliases": ["Cozy Bear", "The Dukes"],
+            "tactics": ["Reconnaissance", "Spear Phishing"],
+            "country": "Russia"
+        },
+        "Lazarus Group": {
+            "aliases": ["Hidden Cobra"],
+            "tactics": ["Financial Theft", "Malware Deployment"],
+            "country": "North Korea"
+        },
+        "FIN7": {
+            "aliases": ["Carbanak Group"],
+            "tactics": ["Data Exfiltration", "Malware", "Backdoors"],
+            "country": "Unknown"
+        },
+        "TA505": {
+            "aliases": ["SectorJ04"],
+            "tactics": ["Banking Malware", "Phishing Campaigns"],
+            "country": "Global"
+        }
+    }
+
+    found = False
+    for actor, info in actor_db.items():
+        if keyword.lower() in actor.lower() or any(keyword.lower() in alias.lower() for alias in info["aliases"]):
+            print(f"🎯 Match Found: {actor}")
+            print(f" - Aliases: {', '.join(info['aliases'])}")
+            print(f" - Tactics: {', '.join(info['tactics'])}")
+            print(f" - Suspected Origin: {info['country']}")
+            found = True
+            break
+
+    if not found:
+        print("🚫 No matching threat actor found in local database.")
+
+# =======================
+# Alert System Module
+# =======================
+
+def check_alerts():
+    print("\n🔔 Checking for real-time alerts (simulated feed)...")
+
+    triggered = False
+
+    for filename in os.listdir(FEEDS_DATA_DIR):
+        if filename.endswith(".log"):
+            filepath = os.path.join(FEEDS_DATA_DIR, filename)
+            with open(filepath, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+                for line in lines:
+                    for keyword in ALERT_KEYWORDS:
+                        if re.search(keyword, line, re.IGNORECASE):
+                            print(f"🚨 ALERT [{keyword.upper()}] found in {filename}:")
+                            print(f"  → {line.strip()}\n")
+                            triggered = True
+
+    if not triggered:
+        print("✅ No current alerts detected.")
+
+# =======================
+# Report Generator Module
+# =======================
+
+def generate_report():
+    print("\n📝 Generating Threat Intelligence Report...")
+
+    # You can replace this dummy data with actual data collected in runtime
+    report_data = {
+        "ioc_detected": ["198.50.100.12", "malicious.com", "e3b0c44298fc1c149"],
+        "actors": ["APT28", "Lazarus Group"],
+        "alerts": ["Ransomware attack via phishing", "Data leak detected"]
+    }
+
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    report_name = f"BlackTrace_Report_{timestamp}.html"
+    output_path = os.path.join(OUTPUT_DIR, report_name)
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(f"<html><head><title>BlackTrace Report - {timestamp}</title></head><body>")
+        f.write("<h1 style='color:#2E86C1;'>🛡️ BlackTrace - Threat Intelligence Report</h1>")
+        f.write(f"<p><b>Generated on:</b> {timestamp}</p><hr>")
+
+        f.write("<h2>🚨 Detected IOCs:</h2><ul>")
+        for ioc in report_data["ioc_detected"]:
+            f.write(f"<li>{ioc}</li>")
+        f.write("</ul>")
+
+        f.write("<h2>🎯 Suspected Threat Actors:</h2><ul>")
+        for actor in report_data["actors"]:
+            f.write(f"<li>{actor}</li>")
+        f.write("</ul>")
+
+        f.write("<h2>🔔 Alerts:</h2><ul>")
+        for alert in report_data["alerts"]:
+            f.write(f"<li>{alert}</li>")
+        f.write("</ul>")
+
+        f.write("</body></html>")
+
+    print(f"✅ Report saved as: {output_path}")
+
+# =======================
+# Main Menu
+# =======================
+
+def main():
+    while True:
+        print("\n🛡️  BlackTrace - Cyber Threat Intel Recon Engine")
+        print("1. Analyze IOC")
+        print("2. Track Threat Actor")
+        print("3. Scan Dark Web")
+        print("4. Check Real-time Alerts")
+        print("5. Generate Threat Report")
+        print("6. Exit")
+
+        choice = input("\nEnter your choice (1-6): ").strip()
+
+        if choice == "1":
+            ioc = input("Enter IOC (IP, Domain, Hash): ").strip()
+            analyze_ioc(ioc)
+
+        elif choice == "2":
+            keyword = input("Enter actor keyword or TTP: ").strip()
+            track_actor(keyword)
+
+        elif choice == "3":
+            query = input("Enter keyword to scan dark web: ").strip()
+            scan_darkweb(query)
+
+        elif choice == "4":
+            check_alerts()
+
+        elif choice == "5":
+            generate_report()
+
+        elif choice == "6":
+            print("👋 Exiting BlackTrace. Stay safe!")
+            break
+
+        else:
+            print("❌ Invalid choice. Please enter a number from 1 to 6.")
+
+if __name__ == "__main__":
+    main()
