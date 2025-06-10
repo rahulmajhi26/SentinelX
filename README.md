@@ -147,16 +147,3 @@ This tool is for **educational and ethical use only**. The author is not respons
 ---
 
 *Thank you for using SentinelX! Stay vigilant, stay secure.*
-
-```
-
----
-
-If you want, I can help you generate:
-
-- A **requirements.txt** file  
-- The `.env` loader code snippet for your Python tool  
-- License file content (MIT or other)  
-
-Just ask!
-```
