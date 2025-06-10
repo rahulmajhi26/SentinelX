@@ -161,12 +161,12 @@ def generate_report():
     }
 
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    report_name = f"BlackTrace_Report_{timestamp}.html"
+    report_name = f"SentinelX_Report_{timestamp}.html"
     output_path = os.path.join(OUTPUT_DIR, report_name)
 
     with open(output_path, "w", encoding="utf-8") as f:
-        f.write(f"<html><head><title>BlackTrace Report - {timestamp}</title></head><body>")
-        f.write("<h1 style='color:#2E86C1;'>🛡️ BlackTrace - Threat Intelligence Report</h1>")
+        f.write(f"<html><head><title>SentinelX Report - {timestamp}</title></head><body>")
+        f.write("<h1 style='color:#2E86C1;'>🛡️ SentinelX - Threat Intelligence Report</h1>")
         f.write(f"<p><b>Generated on:</b> {timestamp}</p><hr>")
 
         f.write("<h2>🚨 Detected IOCs:</h2><ul>")
@@ -194,7 +194,7 @@ def generate_report():
 
 def main():
     while True:
-        print("\n🛡️  BlackTrace - Cyber Threat Intel Recon Engine")
+        print("\n🛡️  SentinelX - Cyber Threat Intel Recon Engine")
         print("1. Analyze IOC")
         print("2. Track Threat Actor")
         print("3. Scan Dark Web")
@@ -223,7 +223,7 @@ def main():
             generate_report()
 
         elif choice == "6":
-            print("👋 Exiting BlackTrace. Stay safe!")
+            print("👋 Exiting SentinelX. Stay safe!")
             break
 
         else:
